@@ -53,6 +53,9 @@ public class BulkMarkerActivity extends AppCompatActivity implements AdapterView
         }
 
         mMapView = (MapView) findViewById(R.id.mapView);
+        // modologica BEGIN
+        mMapView.setStyleUrl("https://api.modologica.com/mmr/watermap/MMR001numericanal/style.json");
+        // modologica END
         mMapView.setAccessToken(ApiAccess.getToken(this));
         mMapView.onCreate(savedInstanceState);
         mMapView.getMapAsync(new OnMapReadyCallback() {

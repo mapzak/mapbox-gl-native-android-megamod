@@ -54,7 +54,11 @@ void Style::setJSON(const std::string& json, const std::string&) {
     for (auto& layer : parser.layers) {
         addLayer(std::move(layer));
     }
-
+    // modologica BEGIN
+    use_m = parser.use_m;
+    use_mtn = parser.use_mtn;
+    use_mmr = parser.use_mmr;
+    // modologica END
     glyphStore->setURL(parser.glyphURL);
     spriteStore->load(parser.spriteURL, fileSource);
 

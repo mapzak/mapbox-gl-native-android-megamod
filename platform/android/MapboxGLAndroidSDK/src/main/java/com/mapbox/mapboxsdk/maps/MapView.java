@@ -63,6 +63,10 @@ import com.mapbox.mapboxsdk.annotations.Annotation;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.InfoWindow;
+import com.mapbox.mapboxsdk.annotations.MMRMyShipPoint;
+import com.mapbox.mapboxsdk.annotations.MMRShipPoint;
+import com.mapbox.mapboxsdk.annotations.MPoint;
+import com.mapbox.mapboxsdk.annotations.MTNPoint;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.Polygon;
 import com.mapbox.mapboxsdk.annotations.Polyline;
@@ -119,7 +123,6 @@ public class MapView extends FrameLayout {
     private ImageView mLogoView;
     private ImageView mAttributionsView;
     private UserLocationView mUserLocationView;
-
     private CopyOnWriteArrayList<OnMapChangedListener> mOnMapChangedListener;
     private ZoomButtonsController mZoomButtonsController;
     private ConnectivityReceiver mConnectivityReceiver;
@@ -169,6 +172,12 @@ public class MapView extends FrameLayout {
         super(context);
         initialize(context, options);
     }
+
+    // modologica BEGIN
+    public void fakeUserLocation(Location l) {
+        mUserLocationView.fakeLocation(l);
+    }
+    // modologica END
 
     private void initialize(@NonNull Context context, @NonNull MapboxMapOptions options) {
         mInitialLoad = true;
@@ -500,9 +509,10 @@ public class MapView extends FrameLayout {
     @UiThread
     public void onPause() {
         // Register for connectivity changes
-        getContext().unregisterReceiver(mConnectivityReceiver);
-        mConnectivityReceiver = null;
-
+        // modologica BEGIN
+//        getContext().unregisterReceiver(mConnectivityReceiver);
+//        mConnectivityReceiver = null;
+        // modologica END
         mUserLocationView.onPause();
         mNativeMapView.pause();
     }
@@ -513,9 +523,10 @@ public class MapView extends FrameLayout {
     @UiThread
     public void onResume() {
         // Register for connectivity changes
-        mConnectivityReceiver = new ConnectivityReceiver();
-        getContext().registerReceiver(mConnectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-
+        // modologica BEGIN
+//        mConnectivityReceiver = new ConnectivityReceiver();
+//        getContext().registerReceiver(mConnectivityReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        // modologica END
         mNativeMapView.resume();
         mNativeMapView.update();
         mUserLocationView.onResume();
@@ -840,6 +851,7 @@ public class MapView extends FrameLayout {
 
     // Checks if the given token is valid
     private void validateAccessToken(String accessToken) {
+        if(true) return;
         if (TextUtils.isEmpty(accessToken) || (!accessToken.startsWith("pk.") && !accessToken.startsWith("sk."))) {
             throw new InvalidAccessTokenException();
         }
@@ -847,6 +859,7 @@ public class MapView extends FrameLayout {
 
     // Checks that TelemetryService has been configured by developer
     private void validateTelemetryServiceConfigured() {
+        if(true) return;
         try {
             // Check Implementing app's AndroidManifest.xml
             PackageInfo packageInfo = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), PackageManager.GET_SERVICES);
@@ -983,6 +996,68 @@ public class MapView extends FrameLayout {
             marker.setTopOffsetPixels(getTopOffsetPixelsForIcon(icon));
         }
     }
+
+    // modologica BEGIN
+
+    public long addMPoint(MPoint mPoint) {
+        return mNativeMapView.addMPoint(mPoint);
+    }
+
+    public long[] addMPoints(List<MPoint> mPoints) {
+        return mNativeMapView.addMPoints(mPoints);
+    }
+
+    public void updateMPoint(MPoint mPoint) {
+        mNativeMapView.updateMPoint(mPoint);
+    }
+    /**********************************************************************************************/
+    // MTN Point
+    /**********************************************************************************************/
+
+    public long addMTNPoint(MTNPoint mTNPoint) {
+        return mNativeMapView.addMTNPoint(mTNPoint);
+    }
+
+    public long[] addMTNPoints(List<MTNPoint> mTNPoints) {
+        return mNativeMapView.addMTNPoints(mTNPoints);
+    }
+
+    public void updateMTNPoint(MTNPoint mTNPoint) {
+        mNativeMapView.updateMTNPoint(mTNPoint);
+    }
+
+    /**********************************************************************************************/
+    // MMR Ship Point
+    /**********************************************************************************************/
+
+    public long addMMRShipPoint(MMRShipPoint mMRShipPoint) {
+        return mNativeMapView.addMMRShipPoint(mMRShipPoint);
+    }
+
+    public long[] addMMRShipPoints(List<MMRShipPoint> mMRShipPoints) {
+        return mNativeMapView.addMMRShipPoints(mMRShipPoints);
+    }
+
+    public void updateMMRShipPoint(MMRShipPoint mMRShipPoint) {
+        mNativeMapView.updateMMRShipPoint(mMRShipPoint);
+    }
+
+    /**********************************************************************************************/
+    // MMR My Ship Point
+    /**********************************************************************************************/
+
+    public long addMMRMyShipPoint(MMRMyShipPoint mMRMyShipPoint) {
+        return mNativeMapView.addMMRMyShipPoint(mMRMyShipPoint);
+    }
+
+    public long[] addMMRMyShipPoints(List<MMRMyShipPoint> mMRMyShipPoints) {
+        return mNativeMapView.addMMRMyShipPoints(mMRMyShipPoints);
+    }
+
+    public void updateMMRMyShipPoint(MMRMyShipPoint mMRMyShipPoint) {
+        mNativeMapView.updateMMRMyShipPoint(mMRMyShipPoint);
+    }
+    // modologica END
 
     long addMarker(@NonNull Marker marker) {
         return mNativeMapView.addMarker(marker);
@@ -1242,6 +1317,10 @@ public class MapView extends FrameLayout {
         }
 
         return mNativeMapView.getScale();
+    }
+
+    public void updateAnnotations() {
+        mNativeMapView.updateAnnotations();
     }
 
     // This class handles TextureView callbacks
@@ -1543,9 +1622,11 @@ public class MapView extends FrameLayout {
 
             List<Marker> selectedMarkers = mMapboxMap.getSelectedMarkers();
 
-            final float toleranceSides = 15 * mScreenDensity;
-            final float toleranceTop = 20 * mScreenDensity;
-            final float toleranceBottom = 5 * mScreenDensity;
+            // modologica BEGIN
+            final float toleranceSides = 30 * mScreenDensity;
+            final float toleranceTop = 40 * mScreenDensity;
+            final float toleranceBottom = 40 * mScreenDensity;
+            // modologica END
 
             RectF tapRect = new RectF(tapPoint.x - toleranceSides, tapPoint.y + toleranceTop,
                     tapPoint.x + toleranceSides, tapPoint.y - toleranceBottom);
@@ -2304,8 +2385,9 @@ public class MapView extends FrameLayout {
     //
     // User location
     //
-
-    void setMyLocationEnabled(boolean enabled) {
+    // modologica BEGIN
+    public void setMyLocationEnabled(boolean enabled) {
+    // modologica END
         mUserLocationView.setEnabled(enabled);
     }
 

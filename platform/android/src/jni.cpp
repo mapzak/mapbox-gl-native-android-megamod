@@ -14,6 +14,12 @@
 #include <mbgl/map/map.hpp>
 #include <mbgl/map/camera.hpp>
 #include <mbgl/annotation/point_annotation.hpp>
+// modologica BEGIN
+#include <mbgl/annotation/m_point_annotation.hpp>
+#include <mbgl/annotation/mtn_point_annotation.hpp>
+#include <mbgl/annotation/mmr_ship_point_annotation.hpp>
+#include <mbgl/annotation/mmr_my_ship_point_annotation.hpp>
+// modologica END
 #include <mbgl/annotation/shape_annotation.hpp>
 #include <mbgl/sprite/sprite_image.hpp>
 #include <mbgl/platform/event.hpp>
@@ -61,7 +67,40 @@ jni::jclass* markerClass = nullptr;
 jni::jfieldID* markerPositionId = nullptr;
 jni::jfieldID* markerIconId = nullptr;
 jni::jfieldID* markerIdId = nullptr;
+// modologica BEGIN
+jni::jclass* mPointClass = nullptr;
+jni::jfieldID* mPointPositionId = nullptr;
+jni::jfieldID* mPointIdId = nullptr;
+jni::jfieldID* mPointSymbolId = nullptr;
+jni::jfieldID* mPointTypeId = nullptr;
+jni::jfieldID* mPointNrId = nullptr;
+jni::jfieldID* mPointSelectedId = nullptr;
 
+jni::jclass* mtnPointClass = nullptr;
+jni::jfieldID* mtnPointPositionId = nullptr;
+jni::jfieldID* mtnPointIdId = nullptr;
+jni::jfieldID* mtnPointSymbolId = nullptr;
+jni::jfieldID* mtnPointTypeId = nullptr;
+jni::jfieldID* mtnPointIdxId = nullptr;
+jni::jfieldID* mtnPointNrId = nullptr;
+jni::jfieldID* mtnPointSelectedId = nullptr;
+
+jni::jclass* mmrShipPointClass = nullptr;
+jni::jfieldID* mmrShipPointPositionId = nullptr;
+jni::jfieldID* mmrShipPointIdId = nullptr;
+jni::jfieldID* mmrShipPointTypeId = nullptr;
+jni::jfieldID* mmrShipPointRotId = nullptr;
+jni::jfieldID* mmrShipPointSogId = nullptr;
+jni::jfieldID* mmrShipPointCogId = nullptr;
+
+jni::jclass* mmrMyShipPointClass = nullptr;
+jni::jfieldID* mmrMyShipPointPositionId = nullptr;
+jni::jfieldID* mmrMyShipPointIdId = nullptr;
+jni::jfieldID* mmrMyShipPointTypeId = nullptr;
+jni::jfieldID* mmrMyShipPointRotId = nullptr;
+jni::jfieldID* mmrMyShipPointSogId = nullptr;
+jni::jfieldID* mmrMyShipPointCogId = nullptr;
+// modologica END
 jni::jclass* polylineClass = nullptr;
 jni::jfieldID* polylineAlphaId = nullptr;
 jni::jfieldID* polylineColorId = nullptr;
@@ -753,7 +792,359 @@ void nativeResetNorth(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr) {
     NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
     nativeMapView->getMap().resetNorth();
 }
+// modologica BEGIN
+/***************************************************************************************************/
+// M Point  
+/***************************************************************************************************/
 
+jlong nativeAddMPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mPoint, *mPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jsymbol = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mPoint, *mPointSymbolId));
+    std::string symbol_s = std_string_from_jstring(env, jsymbol);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    return nativeMapView->getMap().addMPointAnnotation(mbgl::MPointAnnotation(mbgl::LatLng(latitude, longitude), symbol_s));
+}
+
+void nativeUpdateMPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeUpdateMPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jlong mPointId = jni::GetField<jlong>(*env, mPoint, *mPointIdId);
+    if (mPointId == -1) {
+        return;
+    }
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mPoint, *mPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jsymbol = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mPoint, *mPointSymbolId));
+    std::string symbol_s = std_string_from_jstring(env, jsymbol);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    nativeMapView->getMap().updateMPointAnnotation(mPointId, mbgl::MPointAnnotation(mbgl::LatLng(latitude, longitude), symbol_s));
+}
+
+jni::jarray<jlong>* nativeAddMPoints(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* jlist) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMPoints");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    std::vector<mbgl::MPointAnnotation> mPoints;
+
+    NullCheck(*env, jlist);
+    jni::jarray<jni::jobject>* jarray =
+        reinterpret_cast<jni::jarray<jni::jobject>*>(jni::CallMethod<jni::jobject*>(*env, jlist, *listToArrayId));
+
+    NullCheck(*env, jarray);
+    std::size_t len = jni::GetArrayLength(*env, *jarray);
+
+    mPoints.reserve(len);
+
+    for (std::size_t i = 0; i < len; i++) {
+        jni::jobject* mPoint = jni::GetObjectArrayElement(*env, *jarray, i);
+        jni::jobject* position = jni::GetField<jni::jobject*>(*env, mPoint, *mPointPositionId);
+
+	jni::jstring* jsymbol = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mPoint, *mPointSymbolId));
+	std::string symbol_s = std_string_from_jstring(env, jsymbol);
+
+        jni::DeleteLocalRef(*env, jsymbol);
+        jni::DeleteLocalRef(*env, mPoint);
+
+        jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+        jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+        jni::DeleteLocalRef(*env, position);
+
+        mPoints.emplace_back(mbgl::MPointAnnotation(mbgl::LatLng(latitude, longitude), symbol_s));
+     }
+
+    jni::DeleteLocalRef(*env, jarray);
+
+    std::vector<uint32_t> mPointAnnotationIDs = nativeMapView->getMap().addMPointAnnotations(mPoints);
+    return std_vector_uint_to_jobject(env, mPointAnnotationIDs);
+}
+/***************************************************************************************************/
+// MTN Point  
+/***************************************************************************************************/
+
+jlong nativeAddMTNPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mtnPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMTNPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mtnPoint, *mtnPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mtnPoint, *mtnPointTypeId));
+    std::string type_s = std_string_from_jstring(env, jtype);
+    jint nr_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointNrId);
+    jint idx_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointIdxId);
+    jint selected_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointSelectedId);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    return nativeMapView->getMap().addMTNPointAnnotation(mbgl::MTNPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, idx_i, nr_i, selected_i));
+}
+
+void nativeUpdateMTNPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mtnPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeUpdateMTNPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jlong mtnPointId = jni::GetField<jlong>(*env, mtnPoint, *mtnPointIdId);
+    if (mtnPointId == -1) {
+        return;
+    }
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mtnPoint, *mtnPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mtnPoint, *mtnPointTypeId));
+    std::string type_s = std_string_from_jstring(env, jtype);
+    jint nr_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointNrId);
+    jint idx_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointIdxId);
+    jint selected_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointSelectedId);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    nativeMapView->getMap().updateMTNPointAnnotation(mtnPointId, mbgl::MTNPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, idx_i, nr_i, selected_i));
+}
+
+jni::jarray<jlong>* nativeAddMTNPoints(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* jlist) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMTNPoints");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    std::vector<mbgl::MTNPointAnnotation> mtnPoints;
+
+    NullCheck(*env, jlist);
+    jni::jarray<jni::jobject>* jarray =
+        reinterpret_cast<jni::jarray<jni::jobject>*>(jni::CallMethod<jni::jobject*>(*env, jlist, *listToArrayId));
+
+    NullCheck(*env, jarray);
+    std::size_t len = jni::GetArrayLength(*env, *jarray);
+
+    mtnPoints.reserve(len);
+
+    for (std::size_t i = 0; i < len; i++) {
+        jni::jobject* mtnPoint = jni::GetObjectArrayElement(*env, *jarray, i);
+        jni::jobject* position = jni::GetField<jni::jobject*>(*env, mtnPoint, *mtnPointPositionId);
+	jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mtnPoint, *mtnPointTypeId));
+	std::string type_s = std_string_from_jstring(env, jtype);
+    jint nr_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointNrId);
+	jint idx_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointIdxId);
+	jint selected_i = jni::GetField<jint>(*env, mtnPoint, *mtnPointSelectedId);
+        jni::DeleteLocalRef(*env, jtype);
+        jni::DeleteLocalRef(*env, mtnPoint);
+
+        jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+        jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+        jni::DeleteLocalRef(*env, position);
+
+        mtnPoints.emplace_back(mbgl::MTNPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, idx_i, nr_i, selected_i));
+     }
+
+    jni::DeleteLocalRef(*env, jarray);
+
+    std::vector<uint32_t> mtnPointAnnotationIDs = nativeMapView->getMap().addMTNPointAnnotations(mtnPoints);
+    return std_vector_uint_to_jobject(env, mtnPointAnnotationIDs);
+}
+
+/***************************************************************************************************/
+// MMR Ship Point  
+/***************************************************************************************************/
+
+jlong nativeAddMMRShipPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mmrShipPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMMRShipPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mmrShipPoint, *mmrShipPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mmrShipPoint, *mmrShipPointTypeId));
+    std::string type_s = std_string_from_jstring(env, jtype);
+    jint rot_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointRotId);
+    jint sog_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointSogId);
+    jint cog_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointCogId);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    return nativeMapView->getMap().addMMRShipPointAnnotation(mbgl::MMRShipPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, rot_i, sog_i, cog_i));
+}
+
+void nativeUpdateMMRShipPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mmrShipPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeUpdateMMRShipPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jlong mmrShipPointId = jni::GetField<jlong>(*env, mmrShipPoint, *mmrShipPointIdId);
+    if (mmrShipPointId == -1) {
+        return;
+    }
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mmrShipPoint, *mmrShipPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mmrShipPoint, *mmrShipPointTypeId));
+    std::string type_s = std_string_from_jstring(env, jtype);
+    jint rot_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointRotId);
+    jint sog_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointSogId);
+    jint cog_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointCogId);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    nativeMapView->getMap().updateMMRShipPointAnnotation(mmrShipPointId, mbgl::MMRShipPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, rot_i, sog_i, cog_i));
+}
+
+jni::jarray<jlong>* nativeAddMMRShipPoints(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* jlist) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMMRShipPoints");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    std::vector<mbgl::MMRShipPointAnnotation> mmrShipPoints;
+
+    NullCheck(*env, jlist);
+    jni::jarray<jni::jobject>* jarray =
+        reinterpret_cast<jni::jarray<jni::jobject>*>(jni::CallMethod<jni::jobject*>(*env, jlist, *listToArrayId));
+
+    NullCheck(*env, jarray);
+    std::size_t len = jni::GetArrayLength(*env, *jarray);
+
+    mmrShipPoints.reserve(len);
+
+    for (std::size_t i = 0; i < len; i++) {
+        jni::jobject* mmrShipPoint = jni::GetObjectArrayElement(*env, *jarray, i);
+        jni::jobject* position = jni::GetField<jni::jobject*>(*env, mmrShipPoint, *mmrShipPointPositionId);
+
+	jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mmrShipPoint, *mmrShipPointTypeId));
+	std::string type_s = std_string_from_jstring(env, jtype);
+	jint rot_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointRotId);
+	jint sog_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointSogId);
+	jint cog_i = jni::GetField<jint>(*env, mmrShipPoint, *mmrShipPointCogId);
+
+        jni::DeleteLocalRef(*env, jtype);
+        jni::DeleteLocalRef(*env, mmrShipPoint);
+
+        jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+        jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+        jni::DeleteLocalRef(*env, position);
+
+        mmrShipPoints.emplace_back(mbgl::MMRShipPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, rot_i, sog_i, cog_i));
+     }
+
+    jni::DeleteLocalRef(*env, jarray);
+
+    std::vector<uint32_t> mmrShipPointAnnotationIDs = nativeMapView->getMap().addMMRShipPointAnnotations(mmrShipPoints);
+    return std_vector_uint_to_jobject(env, mmrShipPointAnnotationIDs);
+}
+
+/***************************************************************************************************/
+// MMR My Ship Point  
+/***************************************************************************************************/
+
+jlong nativeAddMMRMyShipPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mmrMyShipPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMMRMyShipPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mmrMyShipPoint, *mmrMyShipPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mmrMyShipPoint, *mmrMyShipPointTypeId));
+    std::string type_s = std_string_from_jstring(env, jtype);
+    jint rot_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointRotId);
+    jint sog_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointSogId);
+    jint cog_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointCogId);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    return nativeMapView->getMap().addMMRMyShipPointAnnotation(mbgl::MMRMyShipPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, rot_i, sog_i, cog_i));
+}
+
+void nativeUpdateMMRMyShipPoint(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* mmrMyShipPoint) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeUpdateMMRMyShipPoint");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    jlong mmrMyShipPointId = jni::GetField<jlong>(*env, mmrMyShipPoint, *mmrMyShipPointIdId);
+    if (mmrMyShipPointId == -1) {
+        return;
+    }
+
+    jni::jobject* position = jni::GetField<jni::jobject*>(*env, mmrMyShipPoint, *mmrMyShipPointPositionId);
+    jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+    jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+
+    jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mmrMyShipPoint, *mmrMyShipPointTypeId));
+    std::string type_s = std_string_from_jstring(env, jtype);
+    jint rot_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointRotId);
+    jint sog_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointSogId);
+    jint cog_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointCogId);
+
+    // Because Java only has int, not unsigned int, we need to bump the annotation id up to a long.
+    nativeMapView->getMap().updateMMRMyShipPointAnnotation(mmrMyShipPointId, mbgl::MMRMyShipPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, rot_i, sog_i, cog_i));
+}
+
+jni::jarray<jlong>* nativeAddMMRMyShipPoints(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* jlist) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMMRMyShipPoints");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+
+    std::vector<mbgl::MMRMyShipPointAnnotation> mmrMyShipPoints;
+
+    NullCheck(*env, jlist);
+    jni::jarray<jni::jobject>* jarray =
+        reinterpret_cast<jni::jarray<jni::jobject>*>(jni::CallMethod<jni::jobject*>(*env, jlist, *listToArrayId));
+
+    NullCheck(*env, jarray);
+    std::size_t len = jni::GetArrayLength(*env, *jarray);
+
+    mmrMyShipPoints.reserve(len);
+
+    for (std::size_t i = 0; i < len; i++) {
+        jni::jobject* mmrMyShipPoint = jni::GetObjectArrayElement(*env, *jarray, i);
+        jni::jobject* position = jni::GetField<jni::jobject*>(*env, mmrMyShipPoint, *mmrMyShipPointPositionId);
+
+	jni::jstring* jtype = reinterpret_cast<jni::jstring*>(jni::GetField<jni::jobject*>(*env, mmrMyShipPoint, *mmrMyShipPointTypeId));
+	std::string type_s = std_string_from_jstring(env, jtype);
+	jint rot_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointRotId);
+	jint sog_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointSogId);
+	jint cog_i = jni::GetField<jint>(*env, mmrMyShipPoint, *mmrMyShipPointCogId);
+
+        jni::DeleteLocalRef(*env, jtype);
+        jni::DeleteLocalRef(*env, mmrMyShipPoint);
+
+        jdouble latitude = jni::GetField<jdouble>(*env, position, *latLngLatitudeId);
+        jdouble longitude = jni::GetField<jdouble>(*env, position, *latLngLongitudeId);
+        jni::DeleteLocalRef(*env, position);
+
+        mmrMyShipPoints.emplace_back(mbgl::MMRMyShipPointAnnotation(mbgl::LatLng(latitude, longitude), type_s, rot_i, sog_i, cog_i));
+     }
+
+    jni::DeleteLocalRef(*env, jarray);
+
+    std::vector<uint32_t> mmrMyShipPointAnnotationIDs = nativeMapView->getMap().addMMRMyShipPointAnnotations(mmrMyShipPoints);
+    return std_vector_uint_to_jobject(env, mmrMyShipPointAnnotationIDs);
+}
+
+void nativeUpdateAnnotations(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr) {
+    mbgl::Log::Debug(mbgl::Event::JNI, "nativeUpdateAnnotations");
+    assert(nativeMapViewPtr != 0);
+    NativeMapView *nativeMapView = reinterpret_cast<NativeMapView *>(nativeMapViewPtr);
+    nativeMapView->getMap().updateAnnotations();
+}
+
+// modologica END
 jlong nativeAddMarker(JNIEnv *env, jni::jobject* obj, jlong nativeMapViewPtr, jni::jobject* marker) {
     mbgl::Log::Debug(mbgl::Event::JNI, "nativeAddMarker");
     assert(nativeMapViewPtr != 0);
@@ -1763,7 +2154,40 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     markerPositionId = &jni::GetFieldID(env, *markerClass, "position", "Lcom/mapbox/mapboxsdk/geometry/LatLng;");
     markerIconId = &jni::GetFieldID(env, *markerClass, "icon", "Lcom/mapbox/mapboxsdk/annotations/Icon;");
     markerIdId = &jni::GetFieldID(env, *markerClass, "id", "J");
+    // modologica BEGIN
+    mPointClass = &jni::FindClass(env, "com/mapbox/mapboxsdk/annotations/MPoint");
+    mPointClass = jni::NewGlobalRef(env, mPointClass).release();
+    mPointPositionId = &jni::GetFieldID(env, *mPointClass, "position", "Lcom/mapbox/mapboxsdk/geometry/LatLng;");
+    mPointIdId = &jni::GetFieldID(env, *mPointClass, "id", "J");
+    mPointSymbolId = &jni::GetFieldID(env, *mPointClass, "symbol", "Ljava/lang/String;");
 
+    mtnPointClass = &jni::FindClass(env, "com/mapbox/mapboxsdk/annotations/MTNPoint");
+    mtnPointClass = jni::NewGlobalRef(env, mtnPointClass).release();
+    mtnPointPositionId = &jni::GetFieldID(env, *mtnPointClass, "position", "Lcom/mapbox/mapboxsdk/geometry/LatLng;");
+    mtnPointIdId = &jni::GetFieldID(env, *mtnPointClass, "id", "J");
+    mtnPointTypeId = &jni::GetFieldID(env, *mtnPointClass, "type", "Ljava/lang/String;");
+    mtnPointIdxId = &jni::GetFieldID(env, *mtnPointClass, "idx", "I");
+    mtnPointNrId = &jni::GetFieldID(env, *mtnPointClass, "nr", "I");
+    mtnPointSelectedId = &jni::GetFieldID(env, *mtnPointClass, "selected", "I");
+
+    mmrShipPointClass = &jni::FindClass(env, "com/mapbox/mapboxsdk/annotations/MMRShipPoint");
+    mmrShipPointClass = jni::NewGlobalRef(env, mmrShipPointClass).release();
+    mmrShipPointPositionId = &jni::GetFieldID(env, *mmrShipPointClass, "position", "Lcom/mapbox/mapboxsdk/geometry/LatLng;");
+    mmrShipPointIdId = &jni::GetFieldID(env, *mmrShipPointClass, "id", "J");
+    mmrShipPointTypeId = &jni::GetFieldID(env, *mmrShipPointClass, "type", "Ljava/lang/String;");
+    mmrShipPointRotId = &jni::GetFieldID(env, *mmrShipPointClass, "rot", "I");
+    mmrShipPointSogId = &jni::GetFieldID(env, *mmrShipPointClass, "sog", "I");
+    mmrShipPointCogId = &jni::GetFieldID(env, *mmrShipPointClass, "cog", "I");
+
+    mmrMyShipPointClass = &jni::FindClass(env, "com/mapbox/mapboxsdk/annotations/MMRMyShipPoint");
+    mmrMyShipPointClass = jni::NewGlobalRef(env, mmrMyShipPointClass).release();
+    mmrMyShipPointPositionId = &jni::GetFieldID(env, *mmrMyShipPointClass, "position", "Lcom/mapbox/mapboxsdk/geometry/LatLng;");
+    mmrMyShipPointIdId = &jni::GetFieldID(env, *mmrMyShipPointClass, "id", "J");
+    mmrMyShipPointTypeId = &jni::GetFieldID(env, *mmrMyShipPointClass, "type", "Ljava/lang/String;");
+    mmrMyShipPointRotId = &jni::GetFieldID(env, *mmrMyShipPointClass, "rot", "I");
+    mmrMyShipPointSogId = &jni::GetFieldID(env, *mmrMyShipPointClass, "sog", "I");
+    mmrMyShipPointCogId = &jni::GetFieldID(env, *mmrMyShipPointClass, "cog", "I");
+    // modologica END
     polylineClass = &jni::FindClass(env, "com/mapbox/mapboxsdk/annotations/Polyline");
     polylineClass = jni::NewGlobalRef(env, polylineClass).release();
     polylineAlphaId = &jni::GetFieldID(env, *polylineClass, "alpha", "F");
@@ -1876,6 +2300,25 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         MAKE_NATIVE_METHOD(nativeResetNorth, "(J)V"),
         MAKE_NATIVE_METHOD(nativeAddMarker, "(JLcom/mapbox/mapboxsdk/annotations/Marker;)J"),
         MAKE_NATIVE_METHOD(nativeAddMarkers, "(JLjava/util/List;)[J"),
+        // modologica BEGIN
+        MAKE_NATIVE_METHOD(nativeAddMPoint, "(JLcom/mapbox/mapboxsdk/annotations/MPoint;)J"),
+        MAKE_NATIVE_METHOD(nativeAddMPoints, "(JLjava/util/List;)[J"),
+        MAKE_NATIVE_METHOD(nativeUpdateMPoint, "(JLcom/mapbox/mapboxsdk/annotations/MPoint;)V"),
+
+        MAKE_NATIVE_METHOD(nativeAddMTNPoint, "(JLcom/mapbox/mapboxsdk/annotations/MTNPoint;)J"),
+        MAKE_NATIVE_METHOD(nativeAddMTNPoints, "(JLjava/util/List;)[J"),
+        MAKE_NATIVE_METHOD(nativeUpdateMTNPoint, "(JLcom/mapbox/mapboxsdk/annotations/MTNPoint;)V"),
+
+        MAKE_NATIVE_METHOD(nativeAddMMRShipPoint, "(JLcom/mapbox/mapboxsdk/annotations/MMRShipPoint;)J"),
+        MAKE_NATIVE_METHOD(nativeAddMMRShipPoints, "(JLjava/util/List;)[J"),
+        MAKE_NATIVE_METHOD(nativeUpdateMMRShipPoint, "(JLcom/mapbox/mapboxsdk/annotations/MMRShipPoint;)V"),
+
+        MAKE_NATIVE_METHOD(nativeAddMMRMyShipPoint, "(JLcom/mapbox/mapboxsdk/annotations/MMRMyShipPoint;)J"),
+        MAKE_NATIVE_METHOD(nativeAddMMRMyShipPoints, "(JLjava/util/List;)[J"),
+        MAKE_NATIVE_METHOD(nativeUpdateMMRMyShipPoint, "(JLcom/mapbox/mapboxsdk/annotations/MMRMyShipPoint;)V"),
+
+        MAKE_NATIVE_METHOD(nativeUpdateAnnotations, "(J)V"),
+        // modologica END
         MAKE_NATIVE_METHOD(nativeAddPolyline, "(JLcom/mapbox/mapboxsdk/annotations/Polyline;)J"),
         MAKE_NATIVE_METHOD(nativeAddPolylines, "(JLjava/util/List;)[J"),
         MAKE_NATIVE_METHOD(nativeAddPolygon, "(JLcom/mapbox/mapboxsdk/annotations/Polygon;)J"),

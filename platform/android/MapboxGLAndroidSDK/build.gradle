@@ -18,7 +18,7 @@ repositories {
 }
 
 ext {
-    supportLibVersion = '23.1.1'
+    supportLibVersion = '24.0.0'
 }
 
 dependencies {
@@ -76,27 +76,27 @@ configurations {
 }
 
 
-android.libraryVariants.all { variant ->
-    def name = variant.name
-    task "javadoc$name"(type: Javadoc) {
-        description = "Generates javadoc for build $name"
-        failOnError = false
-        destinationDir = new File(destinationDir, variant.baseName)
-        source = files(variant.javaCompile.source)
-        classpath = files(variant.javaCompile.classpath.files) + files(android.bootClasspath)
-        exclude '**/R.java', '**/BuildConfig.java', 'com/almeros/**'
-        options.windowTitle("Mapbox Android SDK $VERSION_NAME Reference")
-        options.docTitle("Mapbox Android SDK $VERSION_NAME")
-        options.header("Mapbox Android SDK $VERSION_NAME Reference")
-        options.bottom("&copy; 2015&ndash;2016 Mapbox. All rights reserved.")
-        options.links("http://docs.oracle.com/javase/7/docs/api/")
-        options.linksOffline("http://d.android.com/reference/", "$System.env.ANDROID_HOME/docs/reference")
-        options.overview("src/main/java/overview.html")
-        options.group("Mapbox Android SDK", "com.mapbox.*")
-        options.group("Third Party Libraries", "com.almeros.*")
-        // TODO exclude generated R, BuildConfig, com.almeros.*
-    }
-}
+//android.libraryVariants.all { variant ->
+//    def name = variant.name
+//    task "javadoc$name"(type: Javadoc) {
+//        description = "Generates javadoc for build $name"
+//        failOnError = false
+//        destinationDir = new File(destinationDir, variant.baseName)
+//        source = files(variant.javaCompile.source)
+//        classpath = files(variant.javaCompile.classpath.files) + files(android.bootClasspath)
+//        exclude '**/R.java', '**/BuildConfig.java', 'com/almeros/**'
+//        options.windowTitle("Mapbox Android SDK $VERSION_NAME Reference")
+//        options.docTitle("Mapbox Android SDK $VERSION_NAME")
+//        options.header("Mapbox Android SDK $VERSION_NAME Reference")
+//        options.bottom("&copy; 2015&ndash;2016 Mapbox. All rights reserved.")
+//        options.links("http://docs.oracle.com/javase/7/docs/api/")
+//        options.linksOffline("http://d.android.com/reference/", "$System.env.ANDROID_HOME/docs/reference")
+//        options.overview("src/main/java/overview.html")
+//        options.group("Mapbox Android SDK", "com.mapbox.*")
+//        options.group("Third Party Libraries", "com.almeros.*")
+//        // TODO exclude generated R, BuildConfig, com.almeros.*
+//    }
+//}
 
 checkstyle {
     configFile project.file('../checks.xml')
@@ -240,15 +240,15 @@ afterEvaluate { project ->
         sign configurations.archives
     }
 
-    task androidJavadocs(type: Javadoc) {
-        source = android.sourceSets.main.java.sourceFiles
-        classpath = files(android.bootClasspath)
-    }
+//    task androidJavadocs(type: Javadoc) {
+//        source = android.sourceSets.main.java.sourceFiles
+//        classpath = files(android.bootClasspath)
+//    }
 
-    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-        classifier = 'javadoc'
-        from androidJavadocs.destinationDir
-    }
+//    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+//        classifier = 'javadoc'
+//        from androidJavadocs.destinationDir
+//    }
 
     task androidSourcesJar(type: Jar) {
         classifier = 'sources'
@@ -257,7 +257,7 @@ afterEvaluate { project ->
 
     artifacts {
         archives androidSourcesJar
-        archives androidJavadocsJar
+//        archives androidJavadocsJar
     }
 }
 

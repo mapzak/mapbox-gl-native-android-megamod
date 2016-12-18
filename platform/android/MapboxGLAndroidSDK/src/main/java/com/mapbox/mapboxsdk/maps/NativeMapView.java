@@ -8,6 +8,12 @@ import android.os.Build;
 import android.view.Surface;
 
 import com.mapbox.mapboxsdk.annotations.Marker;
+// modologica BEGIN
+import com.mapbox.mapboxsdk.annotations.MPoint;
+import com.mapbox.mapboxsdk.annotations.MTNPoint;
+import com.mapbox.mapboxsdk.annotations.MMRShipPoint;
+import com.mapbox.mapboxsdk.annotations.MMRMyShipPoint;
+// modologica END
 import com.mapbox.mapboxsdk.annotations.Polygon;
 import com.mapbox.mapboxsdk.annotations.Polyline;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -383,6 +389,75 @@ final class NativeMapView {
     public long[] addMarkers(List<Marker> markers) {
         return nativeAddMarkers(mNativeMapViewPtr, markers);
     }
+    // modologica BEGIN
+    /**********************************************************************************************/
+    // M Point
+    /**********************************************************************************************/
+
+    public long addMPoint(MPoint MPoint) {
+        return nativeAddMPoint(mNativeMapViewPtr, MPoint);
+    }
+
+    public long[] addMPoints(List<MPoint> MPoints) {
+        return nativeAddMPoints(mNativeMapViewPtr, MPoints);
+    }
+
+    public void updateMPoint(MPoint MPoint) {
+        nativeUpdateMPoint(mNativeMapViewPtr, MPoint);
+    }
+    /**********************************************************************************************/
+    // MTN Point
+    /**********************************************************************************************/
+
+    public long addMTNPoint(MTNPoint MTNPoint) {
+        return nativeAddMTNPoint(mNativeMapViewPtr, MTNPoint);
+    }
+
+    public long[] addMTNPoints(List<MTNPoint> MTNPoints) {
+        return nativeAddMTNPoints(mNativeMapViewPtr, MTNPoints);
+    }
+
+    public void updateMTNPoint(MTNPoint MTNPoint) {
+        nativeUpdateMTNPoint(mNativeMapViewPtr, MTNPoint);
+    }
+
+    /**********************************************************************************************/
+    // MMR Ship Point
+    /**********************************************************************************************/
+
+    public long addMMRShipPoint(MMRShipPoint MMRShipPoint) {
+        return nativeAddMMRShipPoint(mNativeMapViewPtr, MMRShipPoint);
+    }
+
+    public long[] addMMRShipPoints(List<MMRShipPoint> MMRShipPoints) {
+        return nativeAddMMRShipPoints(mNativeMapViewPtr, MMRShipPoints);
+    }
+
+    public void updateMMRShipPoint(MMRShipPoint MMRShipPoint) {
+        nativeUpdateMMRShipPoint(mNativeMapViewPtr, MMRShipPoint);
+    }
+
+    /**********************************************************************************************/
+    // MMR My Ship Point
+    /**********************************************************************************************/
+
+    public long addMMRMyShipPoint(MMRMyShipPoint MMRMyShipPoint) {
+        return nativeAddMMRMyShipPoint(mNativeMapViewPtr, MMRMyShipPoint);
+    }
+
+    public long[] addMMRMyShipPoints(List<MMRMyShipPoint> MMRMyShipPoints) {
+        return nativeAddMMRMyShipPoints(mNativeMapViewPtr, MMRMyShipPoints);
+    }
+
+    public void updateMMRMyShipPoint(MMRMyShipPoint MMRMyShipPoint) {
+        nativeUpdateMMRMyShipPoint(mNativeMapViewPtr, MMRMyShipPoint);
+    }
+
+    public void updateAnnotations() {
+        nativeUpdateAnnotations(mNativeMapViewPtr);
+    }
+
+    // modologica END
 
     public long addPolyline(Polyline polyline) {
         return nativeAddPolyline(mNativeMapViewPtr, polyline);
@@ -635,6 +710,37 @@ final class NativeMapView {
     private native void nativeUpdateMarker(long nativeMapViewPtr, Marker marker);
 
     private native long[] nativeAddMarkers(long nativeMapViewPtr, List<Marker> markers);
+    // modologica BEGIN
+    // M Point
+    private native long nativeAddMPoint(long nativeMapViewPtr, MPoint mPoint);
+
+    private native void nativeUpdateMPoint(long nativeMapViewPtr, MPoint mPoint);
+
+    private native long[] nativeAddMPoints(long nativeMapViewPtr, List<MPoint> mPoints);
+
+    // MTN Point
+    private native long nativeAddMTNPoint(long nativeMapViewPtr, MTNPoint mtnPoint);
+
+    private native void nativeUpdateMTNPoint(long nativeMapViewPtr, MTNPoint mtnPoint);
+
+    private native long[] nativeAddMTNPoints(long nativeMapViewPtr, List<MTNPoint> mtnPoints);
+
+    // MMR Ship Point
+    private native long nativeAddMMRShipPoint(long nativeMapViewPtr, MMRShipPoint mmrShipPoint);
+
+    private native void nativeUpdateMMRShipPoint(long nativeMapViewPtr, MMRShipPoint mmrShipPoint);
+
+    private native long[] nativeAddMMRShipPoints(long nativeMapViewPtr, List<MMRShipPoint> mmrShipPoints);
+
+    // MMR My Ship Point
+    private native long nativeAddMMRMyShipPoint(long nativeMapViewPtr, MMRMyShipPoint mmrMyShipPoint);
+
+    private native void nativeUpdateMMRMyShipPoint(long nativeMapViewPtr, MMRMyShipPoint mmrMyShipPoint);
+
+    private native long[] nativeAddMMRMyShipPoints(long nativeMapViewPtr, List<MMRMyShipPoint> mmrMyShipPoints);
+
+    private native void nativeUpdateAnnotations(long nativeMapViewPtr);
+    // modologica END
 
     private native long nativeAddPolyline(long nativeMapViewPtr, Polyline polyline);
 
@@ -691,4 +797,5 @@ final class NativeMapView {
     private native void nativeRemoveCustomLayer(long nativeMapViewPtr, String id);
 
     private native double[] nativeGetCameraValues(long mNativeMapViewPtr);
+
 }

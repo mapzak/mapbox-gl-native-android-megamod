@@ -136,7 +136,10 @@ public class MainActivity extends AppCompatActivity {
 
         mMapView = (MapView) findViewById(R.id.mainMapView);
         mMapView.setAccessToken(ApiAccess.getToken(this));
-        changeMapStyle(mSelectedStyle);
+        // modologica BEGIN
+        // changeMapStyle(mSelectedStyle);
+        mMapView.setStyleUrl("https://api.modologica.com/mmr/watermap/MMR001numericanal/style.json");
+        // modologica END
         mMapView.onCreate(savedInstanceState);
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override

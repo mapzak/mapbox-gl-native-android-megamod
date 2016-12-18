@@ -19,10 +19,11 @@ import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-class HTTPRequest implements Callback {
+// modologica BEGIN
+public class HTTPRequest implements Callback {
     
-    private static OkHttpClient mClient = new OkHttpClient();
+    public static OkHttpClient mClient = new OkHttpClient();
+    // modologica END
     private final String LOG_TAG = HTTPRequest.class.getName();
 
     private static final int CONNECTION_ERROR = 0;

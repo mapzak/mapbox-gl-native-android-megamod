@@ -114,6 +114,17 @@ public final class UserLocationView extends View {
         initialize(context);
     }
 
+    // modologica BEGIN
+    public void fakeLocation(Location l)
+    {
+        this.setLocation(l);
+        this.mStaleMarker = false;
+        this.mShowAccuracy = true;
+        this.setAccuracy(20);
+        this.mMyBearingTrackingMode = MyBearingTracking.COMPASS;
+    }
+    // modologica END
+
     private void initialize(Context context) {
         // View configuration
         setEnabled(false);

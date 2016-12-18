@@ -452,7 +452,59 @@ AnnotationIDs Map::addPointAnnotations(const std::vector<PointAnnotation>& annot
     update(Update::Annotations);
     return result;
 }
+// modologica BEGIN
+AnnotationID Map::addMMRShipPointAnnotation(const MMRShipPointAnnotation& annotation) {
+    return addMMRShipPointAnnotations({ annotation }).front();
+}
+AnnotationIDs Map::addMMRShipPointAnnotations(const std::vector<MMRShipPointAnnotation>& annotations) {
+    auto result = data->getAnnotationManager()->addMMRShipPointAnnotations(annotations, getMaxZoom());
+    return result;
+}
+void Map::updateMMRShipPointAnnotation(AnnotationID annotationId, const MMRShipPointAnnotation& annotation) {
+    data->getAnnotationManager()->updateMMRShipPointAnnotation(annotationId, annotation, getMaxZoom());
+}
 
+AnnotationID Map::addMMRMyShipPointAnnotation(const MMRMyShipPointAnnotation& annotation) {
+    return addMMRMyShipPointAnnotations({ annotation }).front();
+}
+AnnotationIDs Map::addMMRMyShipPointAnnotations(const std::vector<MMRMyShipPointAnnotation>& annotations) {
+    auto result = data->getAnnotationManager()->addMMRMyShipPointAnnotations(annotations, getMaxZoom());
+    return result;
+}
+void Map::updateMMRMyShipPointAnnotation(AnnotationID annotationId, const MMRMyShipPointAnnotation& annotation) {
+    data->getAnnotationManager()->updateMMRMyShipPointAnnotation(annotationId, annotation, getMaxZoom());
+}
+
+void Map::updateAnnotations() {
+    update(Update::Annotations);
+}
+
+AnnotationID Map::addMTNPointAnnotation(const MTNPointAnnotation& annotation) {
+    return addMTNPointAnnotations({ annotation }).front();
+}
+AnnotationIDs Map::addMTNPointAnnotations(const std::vector<MTNPointAnnotation>& annotations) {
+    auto result = data->getAnnotationManager()->addMTNPointAnnotations(annotations, getMaxZoom());
+    update(Update::Annotations);
+    return result;
+}
+void Map::updateMTNPointAnnotation(AnnotationID annotationId, const MTNPointAnnotation& annotation) {
+    data->getAnnotationManager()->updateMTNPointAnnotation(annotationId, annotation, getMaxZoom());
+    update(Update::Annotations);
+}
+
+AnnotationID Map::addMPointAnnotation(const MPointAnnotation& annotation) {
+    return addMPointAnnotations({ annotation }).front();
+}
+AnnotationIDs Map::addMPointAnnotations(const std::vector<MPointAnnotation>& annotations) {
+    auto result = data->getAnnotationManager()->addMPointAnnotations(annotations, getMaxZoom());
+    update(Update::Annotations);
+    return result;
+}
+void Map::updateMPointAnnotation(AnnotationID annotationId, const MPointAnnotation& annotation) {
+    data->getAnnotationManager()->updateMPointAnnotation(annotationId, annotation, getMaxZoom());
+    update(Update::Annotations);
+}
+// modologica END
 AnnotationID Map::addShapeAnnotation(const ShapeAnnotation& annotation) {
     return addShapeAnnotations({ annotation }).front();
 }

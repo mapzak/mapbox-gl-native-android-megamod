@@ -74,11 +74,9 @@ NativeMapView::NativeMapView(JNIEnv *env, jobject obj_, float pixelRatio_, int a
         env->ExceptionDescribe();
         return;
     }
-
-    fileSource = std::make_unique<mbgl::DefaultFileSource>(
-        mbgl::android::cachePath + "/mbgl-offline.db",
-        mbgl::android::apkPath);
-
+    // modologica BEGIN
+    fileSource = std::make_unique<mbgl::OnlineFileSource>();
+    // modologica END
     map = std::make_unique<mbgl::Map>(*this, *fileSource, MapMode::Continuous);
 
     float zoomFactor   = map->getMaxZoom() - map->getMinZoom() + 1;
@@ -224,7 +222,7 @@ void NativeMapView::notify() {
 
 mbgl::Map &NativeMapView::getMap() { return *map; }
 
-mbgl::DefaultFileSource &NativeMapView::getFileSource() { return *fileSource; }
+mbgl::OnlineFileSource &NativeMapView::getFileSource() { return *fileSource; }
 
 bool NativeMapView::inEmulator() {
     // Detect if we are in emulator

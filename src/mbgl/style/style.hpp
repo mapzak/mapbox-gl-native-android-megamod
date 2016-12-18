@@ -114,7 +114,11 @@ public:
     std::unique_ptr<SpriteStore> spriteStore;
     std::unique_ptr<SpriteAtlas> spriteAtlas;
     std::unique_ptr<LineAtlas> lineAtlas;
-
+    // modologica BEGIN
+    bool use_m = false;
+    bool use_mtn = false;
+    bool use_mmr = false;
+    // modologica END
 private:
     std::vector<std::unique_ptr<Source>> sources;
     std::vector<std::unique_ptr<StyleLayer>> layers;

@@ -52,9 +52,13 @@ public class MapboxMap {
     private Projection mProjection;
     private CameraPosition mCameraPosition;
     private boolean mInvalidCameraPosition;
-    private LongSparseArray<Annotation> mAnnotations;
+    // modologica BEGIN
+    public LongSparseArray<Annotation> mAnnotations;
+    // modologica END
     private List<Marker> mSelectedMarkers;
-    private List<InfoWindow> mInfoWindows;
+    // modologica BEGIN
+    public List<InfoWindow> mInfoWindows;
+    // modologica END
     private MapboxMap.InfoWindowAdapter mInfoWindowAdapter;
 
     private boolean mMyLocationEnabled;

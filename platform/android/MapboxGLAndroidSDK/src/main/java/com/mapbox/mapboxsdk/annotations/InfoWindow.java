@@ -187,7 +187,9 @@ public class InfoWindow {
      *
      * @return this info window
      */
-    InfoWindow close() {
+    // modologica BEGIN
+    public InfoWindow close() {
+    // modologica END
         MapboxMap mapboxMap = mMapboxMap.get();
         if (mIsVisible && mapboxMap != null) {
             mIsVisible = false;

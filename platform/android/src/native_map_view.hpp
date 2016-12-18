@@ -5,7 +5,9 @@
 #include <mbgl/map/view.hpp>
 #include <mbgl/util/noncopyable.hpp>
 #include <mbgl/storage/default_file_source.hpp>
-
+// modologica BEGIN
+#include <mbgl/storage/online_file_source.hpp>
+// modologica END
 #include <string>
 #include <jni.h>
 #include <android/native_window.h>
@@ -32,8 +34,9 @@ public:
     void notifyMapChange(mbgl::MapChange) override;
 
     mbgl::Map &getMap();
-    mbgl::DefaultFileSource &getFileSource();
-
+    // modologica BEGIN
+    mbgl::OnlineFileSource &getFileSource();
+    // modologica END
     void initializeDisplay();
     void terminateDisplay();
 
@@ -92,7 +95,7 @@ private:
     JNIEnv *renderEnv = nullptr;
 
     // Ensure these are initialised last
-    std::unique_ptr<mbgl::DefaultFileSource> fileSource;
+    std::unique_ptr<mbgl::OnlineFileSource> fileSource;
     std::unique_ptr<mbgl::Map> map;
     mbgl::EdgeInsets insets;
 };

@@ -35,7 +35,11 @@ public:
     static std::unique_ptr<SourceInfo> parseTileJSON(const JSValue&);
 
     static std::unique_ptr<mapbox::geojsonvt::GeoJSONVT> parseGeoJSON(const JSValue&);
-
+    // modologica BEGIN
+    bool use_m = false;
+    bool use_mtn = false;
+    bool use_mmr = false;
+    // modologica END
 private:
     void parseSources(const JSValue&);
     void parseLayers(const JSValue&);

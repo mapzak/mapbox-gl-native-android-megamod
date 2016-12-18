@@ -22,7 +22,9 @@ gradle.projectsEvaluated {
 }
 
 ext {
-    supportLibVersion = '23.1.1'
+    // modologica BEGIN
+    supportLibVersion = '24.0.0'
+    // modologica END
 }
 
 android {
@@ -71,6 +73,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    adbOptions {
+        timeOutInMs 5 * 60 * 1000 // 5 minutes
     }
 }
 

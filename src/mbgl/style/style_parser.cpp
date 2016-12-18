@@ -125,7 +125,23 @@ void StyleParser::parse(const std::string& json) {
     if (document.HasMember("layers")) {
         parseLayers(document["layers"]);
     }
-
+    // modologica BEGIN
+    if (document.HasMember("metadata")) {
+        const JSValue&  metadata = document["metadata"];
+        if(metadata.HasMember("use_m")) {
+            const JSValue&  use_m_js = metadata["use_m"];
+            use_m = use_m_js.GetBool();
+        }
+        if(metadata.HasMember("use_mmr")) {
+            const JSValue&  use_mmr_js = metadata["use_mmr"];
+            use_mmr = use_mmr_js.GetBool();
+        }
+        if(metadata.HasMember("use_mtn")) {
+            const JSValue&  use_mtn_js = metadata["use_mtn"];
+            use_mtn = use_mtn_js.GetBool();
+        }
+    }
+    // modologica END
     if (document.HasMember("sprite")) {
         const JSValue& sprite = document["sprite"];
         if (sprite.IsString()) {

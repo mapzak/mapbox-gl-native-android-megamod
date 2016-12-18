@@ -26,6 +26,12 @@ class MapContext;
 class SpriteImage;
 class Transform;
 class PointAnnotation;
+// modologica BEGIN
+class MMRShipPointAnnotation;
+class MMRMyShipPointAnnotation;
+class MTNPointAnnotation;
+class MPointAnnotation;
+// modologica END
 class ShapeAnnotation;
 struct CameraOptions;
 struct AnimationOptions;
@@ -161,7 +167,24 @@ public:
 
     AnnotationID addPointAnnotation(const PointAnnotation&);
     AnnotationIDs addPointAnnotations(const std::vector<PointAnnotation>&);
+    // modologica BEGIN
+    AnnotationID addMMRShipPointAnnotation(const MMRShipPointAnnotation&);
+    AnnotationIDs addMMRShipPointAnnotations(const std::vector<MMRShipPointAnnotation>&);
+    void updateMMRShipPointAnnotation(AnnotationID, const MMRShipPointAnnotation&);
+    void updateAnnotations();
+    
+    AnnotationID addMMRMyShipPointAnnotation(const MMRMyShipPointAnnotation&);
+    AnnotationIDs addMMRMyShipPointAnnotations(const std::vector<MMRMyShipPointAnnotation>&);
+    void updateMMRMyShipPointAnnotation(AnnotationID, const MMRMyShipPointAnnotation&);
 
+    AnnotationID addMTNPointAnnotation(const MTNPointAnnotation&);
+    AnnotationIDs addMTNPointAnnotations(const std::vector<MTNPointAnnotation>&);
+    void updateMTNPointAnnotation(AnnotationID, const MTNPointAnnotation&);
+
+    AnnotationID addMPointAnnotation(const MPointAnnotation&);
+    AnnotationIDs addMPointAnnotations(const std::vector<MPointAnnotation>&);
+    void updateMPointAnnotation(AnnotationID, const MPointAnnotation&);
+    // modologica END
     AnnotationID addShapeAnnotation(const ShapeAnnotation&);
     AnnotationIDs addShapeAnnotations(const std::vector<ShapeAnnotation>&);
 
